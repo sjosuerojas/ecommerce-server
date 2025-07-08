@@ -38,15 +38,24 @@ export class UsersService {
         where: { name: 'user' },
       });
 
+      if (!defaultRole) {
+        throw new InternalServerErrorException('Default role "user" not found');
+      }
+
       const user = this.usersRepository.create({
         ...createUserDto,
         roles: [defaultRole],
       });
 
       return await this.usersRepository.save(user);
-    } catch (error) {
-      this.logger.error(`Error creating user: ${error.message}`);
-      if (error.code === '23505') throw new BadRequestException(error.message);
+    } catch (error: unknown) {
+      this.logger.error(
+        `Error creating user: ${(error as { message: string }).message}`,
+      );
+
+      if ((error as { code: string }).code === '23505')
+        throw new BadRequestException((error as { message: string }).message);
+
       throw new BadRequestException(
         `Error creating user: ${createUserDto.email}`,
       );
@@ -68,8 +77,10 @@ export class UsersService {
         take: limit,
         skip: offset,
       });
-    } catch (error) {
-      this.logger.error(`Error finding user collection: ${error.message}`);
+    } catch (error: unknown) {
+      this.logger.error(
+        `Error finding user collection: ${(error as { message: string }).message}`,
+      );
       throw new InternalServerErrorException(`Cannot find products`);
     }
   }
@@ -85,7 +96,7 @@ export class UsersService {
   async findOneByIdOrEmail(
     payload: string,
     allowPrivate: boolean = false,
-  ): Promise<User> {
+  ): Promise<User | null> {
     try {
       const where = isUUID(payload) ? { id: payload } : { email: payload };
       const select = !allowPrivate
@@ -104,9 +115,9 @@ export class UsersService {
         where,
         select,
       });
-    } catch (error) {
+    } catch (error: unknown) {
       this.logger.error(
-        `Error finding user with ${payload} - ${error.message}`,
+        `Error finding user with ${payload} - ${(error as { message: string }).message}`,
       );
       throw new NotFoundException(`Error searching user: ${payload}`);
     }
@@ -126,11 +137,15 @@ export class UsersService {
       id,
       ...updateUserDto,
     });
+
     if (!user) throw new NotFoundException(`User with id: ${id} not found`);
+
     try {
       return await this.usersRepository.save(user);
-    } catch (error) {
-      this.logger.error(`Error deleting user ${id}: ${error.message}`);
+    } catch (error: unknown) {
+      this.logger.error(
+        `Error deleting user ${id}: ${(error as { message: string }).message}`,
+      );
       throw new InternalServerErrorException(
         `Error updating user with id: ${id}`,
       );
@@ -146,10 +161,17 @@ export class UsersService {
    */
   async remove(id: string): Promise<void> {
     const user = await this.findOneByIdOrEmail(id);
+
+    if (!user) {
+      throw new NotFoundException(`User with id: ${id} not found`);
+    }
+
     try {
       await this.usersRepository.remove(user);
-    } catch (error) {
-      this.logger.error(`Error deleting user ${id}: ${error.message}`);
+    } catch (error: unknown) {
+      this.logger.error(
+        `Error creating user: ${(error as { message: string }).message}`,
+      );
       throw new InternalServerErrorException(
         `Error deleting user with id: ${id}`,
       );

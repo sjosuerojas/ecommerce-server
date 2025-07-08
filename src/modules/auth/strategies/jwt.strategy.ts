@@ -13,18 +13,24 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     public configService: ConfigService,
     private usersService: UsersService,
   ) {
+    const jwtSecret = configService.get<string>('JWT_SECRET');
+    if (!jwtSecret) {
+      throw new Error('JWT_SECRET is not defined in configuration');
+    }
+
     super({
-      ignoreExpiration: false,
       jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
-      secretOrKey: configService.get<string>('JWT_SECRET'),
+      ignoreExpiration: false,
+      secretOrKey: jwtSecret,
     });
   }
 
   async validate(payload: IJwtStrategy): Promise<User> {
     const user = await this.usersService.findOneByIdOrEmail(payload.id);
+
     if (!user)
       throw new UnauthorizedException(
-        `Error token for userId: ${user.id} is invalid`,
+        `Error token for userId: ${payload.id} is invalid`,
       );
 
     if (!user.active)

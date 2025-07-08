@@ -50,6 +50,6 @@ export class Product {
 
     this.slug = this.slug
       .toLowerCase()
-      .replace(/[~`!@#$%^&*()+={}\[\];:\'\"<>.,\/\\\?/\s/]/g, '-');
+      .replace(/[~`!@#$%^&*()+={}[\];:'"<>.,/\\?/\s/]/g, '-');
   }
 }

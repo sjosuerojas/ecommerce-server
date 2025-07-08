@@ -18,7 +18,8 @@ export class AuthService {
     private readonly jwtService: JwtService,
     private readonly configService: ConfigService,
   ) {
-    this.jwtExpiration = this.configService.get<string>('JWT_EXPIRATION');
+    this.jwtExpiration =
+      this.configService.get<string>('JWT_EXPIRATION') ?? '3600s';
   }
 
   /**
@@ -56,12 +57,12 @@ export class AuthService {
   async signIn({ email, password }: SignInOptions) {
     const user = await this.usersService.findOneByIdOrEmail(email, true);
 
-    if (!bcrypt.compareSync(password, user.password))
+    if (!user || !bcrypt.compareSync(password, user.password))
       throw new UnauthorizedException(
         `The user ${email} has incorrect credenctials. Please verify again`,
       );
 
-    delete user.password;
+    user.password = '';
 
     return {
       ...this.jwtSign({ id: user.id }),
@@ -73,7 +74,7 @@ export class AuthService {
    * Retrives the user information
    * @param id - The search id, which can be a UUID
    */
-  async profile(id: string): Promise<User> {
+  async profile(id: string): Promise<User | null> {
     return await this.usersService.findOneByIdOrEmail(id);
   }
 }

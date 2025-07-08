@@ -1,9 +1,10 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
-import { ValidationPipe } from '@nestjs/common';
+import { Logger, ValidationPipe } from '@nestjs/common';
 import configuration from './config/configuration';
 
 async function bootstrap() {
+  const logger = new Logger('MainInstance');
   const app = await NestFactory.create(AppModule);
   app.setGlobalPrefix('api/');
   app.useGlobalPipes(
@@ -13,5 +14,9 @@ async function bootstrap() {
     }),
   );
   await app.listen(configuration().port);
+  logger.log(`Server running on port ${configuration().port}`);
 }
-bootstrap();
+
+bootstrap().catch((error) =>
+  console.error('Error starting the application:', error),
+);
