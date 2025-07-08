@@ -20,7 +20,7 @@ export const EnvSchema = Joi.object({
 });
 
 export default () => ({
-  port: parseInt(process.env.APP_PORT, 10) || DEFALT_APP_PORT,
+  port: parseInt(process.env.APP_PORT || '', 10) || DEFALT_APP_PORT,
   global: {
     whitelist: Boolean(process.env.APP_WHITELIST_CLEANER),
     forbidNonWhitelisted: Boolean(process.env.APP_FORBID_NON_WHITELISTED),
@@ -29,7 +29,7 @@ export default () => ({
   },
   database: {
     host: process.env.DB_HOST,
-    port: parseInt(process.env.DB_PORT, 10) || DEFAULT_BD_PORT,
+    port: parseInt(process.env.DB_PORT || '', 10) || DEFAULT_BD_PORT,
     name: process.env.DB_NAME,
     username: process.env.DB_USERNAME,
     password: process.env.DB_PASSWORD,

@@ -50,7 +50,9 @@ export class ProductsService {
     try {
       return await this.productRepository.save(product);
     } catch (error) {
-      this.logger.error(`Error creating product ${product}: ${error.message}`);
+      this.logger.error(
+        `Error creating product ${product.title}: ${(error as { message: string }).message}`,
+      );
       throw new InternalServerErrorException('Cannot create the product');
     }
   }
@@ -70,7 +72,9 @@ export class ProductsService {
         relations: { images: true },
       });
     } catch (error) {
-      this.logger.error(`Error finding product collection: ${error.message}`);
+      this.logger.error(
+        `Error finding product collection: ${(error as { message: string }).message}`,
+      );
       throw new InternalServerErrorException(`Cannot find products`);
     }
   }
@@ -103,7 +107,9 @@ export class ProductsService {
 
       return product;
     } catch (error) {
-      this.logger.error(`Error finding product ${term}: ${error.message}`);
+      this.logger.error(
+        `Error finding product ${term}: ${(error as { message: string }).message}`,
+      );
       throw new InternalServerErrorException(`Cannot find productId: ${term}`);
     }
   }
@@ -123,7 +129,7 @@ export class ProductsService {
     const { images, ...rest } = updateProductDto;
     const product = await this.productRepository.preload({ id, ...rest });
 
-    if (!product)
+    if (!product || !images)
       throw new NotFoundException(`Product with id: ${id} not found`);
 
     try {
@@ -131,7 +137,9 @@ export class ProductsService {
         this.getOrUpdateOne(queryRunner, { id, images, product }),
       );
     } catch (error) {
-      this.logger.error(`Error updating product ${id}: ${error.message}`);
+      this.logger.error(
+        `Error updating product ${id}: ${(error as { message: string }).message}`,
+      );
       throw new InternalServerErrorException(`Cannot update productId: ${id}`);
     }
   }
@@ -147,7 +155,9 @@ export class ProductsService {
       const product = await this.findOne(id);
       await this.productRepository.remove(product);
     } catch (error) {
-      this.logger.error(`Error deleting product ${id}: ${error.message}`);
+      this.logger.error(
+        `Error deleting product ${id}: ${(error as { message: string }).message}`,
+      );
       throw new InternalServerErrorException(`Cannot remove productId: ${id}`);
     }
   }
@@ -168,7 +178,7 @@ export class ProductsService {
           .leftJoinAndSelect('product.images', 'images')
           .where('product.id = :id', { id })
           .getOne()
-          .then((p) => p.images);
+          .then((p) => (p ? p.images : []));
       } else {
         await queryRunner.manager.delete(ProductImage, { product: { id } });
         product.images = images.map((url) =>

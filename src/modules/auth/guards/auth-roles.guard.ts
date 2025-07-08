@@ -9,6 +9,7 @@ import { Observable } from 'rxjs';
 
 import { User } from 'src/modules/users/entities/user.entity';
 import { ROLE_KEY } from '@common/interfaces/role.interfaces';
+import { Request } from 'express';
 
 @Injectable()
 export class AuthRolesGuard implements CanActivate {
@@ -21,7 +22,7 @@ export class AuthRolesGuard implements CanActivate {
       ROLE_KEY,
       context.getHandler(),
     );
-    const request = context.switchToHttp().getRequest();
+    const request = context.switchToHttp().getRequest<Request>();
     const user = request.user as User;
     const userRoles: string[] = user.roles.map(
       (currentRole) => currentRole.name,
